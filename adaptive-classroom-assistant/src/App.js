@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import ModeSelector from "./components/ModeSelector";
-import TextInput from "./components/TextInput";
-import Controls from "./components/Controls";
-import OutputPanel from "./components/OutputPanel";
+import Home from "./pages/Home";
 
 function App() {
   const [lectureText, setLectureText] = useState("");
@@ -11,6 +8,7 @@ function App() {
   const [summary, setSummary] = useState("");
   const [isReading, setIsReading] = useState(false);
   const [captions, setCaptions] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     return () => {
@@ -23,6 +21,8 @@ function App() {
       alert("Please enter some text first");
       return;
     }
+
+    setStatusMessage("Processing lecture content for spoken explanation...");
 
     window.speechSynthesis.cancel();
 
@@ -38,10 +38,12 @@ function App() {
 
     utterance.onend = () => {
       setIsReading(false);
+      setStatusMessage("");
     };
 
     utterance.onerror = () => {
       setIsReading(false);
+      setStatusMessage("");
       alert("Speech synthesis error occurred");
     };
 
@@ -52,6 +54,7 @@ function App() {
     window.speechSynthesis.cancel();
     setIsReading(false);
     setCaptions("");
+    setStatusMessage("");
   };
 
   const handleGenerateSummary = () => {
@@ -60,42 +63,33 @@ function App() {
       return;
     }
 
-    // Mock summary generation
+    setStatusMessage("Extracting key concepts and generating summary...");
+
     const sentences = lectureText
       .split(/[.!?]+/)
       .filter((s) => s.trim().length > 0);
+
     const numSentences = Math.min(3, Math.ceil(sentences.length * 0.3));
     const mockSummary = sentences.slice(0, numSentences).join(". ") + ".";
 
     setSummary(mockSummary);
+    setStatusMessage("");
   };
 
   return (
-    <div className={`App ${mode}`}>
-      <header className="App-header">
-        <h1>Adaptive Classroom Assistant</h1>
-      </header>
-
-      <main className="App-main">
-        <ModeSelector mode={mode} setMode={setMode} />
-
-        <TextInput
-          lectureText={lectureText}
-          setLectureText={setLectureText}
-          mode={mode}
-        />
-
-        <Controls
-          onReadAloud={handleReadAloud}
-          onStopReading={handleStopReading}
-          onGenerateSummary={handleGenerateSummary}
-          isReading={isReading}
-          mode={mode}
-        />
-
-        <OutputPanel summary={summary} captions={captions} mode={mode} />
-      </main>
-    </div>
+    <Home
+      lectureText={lectureText}
+      setLectureText={setLectureText}
+      mode={mode}
+      setMode={setMode}
+      summary={summary}
+      captions={captions}
+      isReading={isReading}
+      statusMessage={statusMessage}
+      onReadAloud={handleReadAloud}
+      onStopReading={handleStopReading}
+      onGenerateSummary={handleGenerateSummary}
+    />
   );
 }
 
